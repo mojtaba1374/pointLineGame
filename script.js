@@ -4,17 +4,26 @@ const M = 4;
 let turn = "R";
 let selectedLines = [];
 
-let gameStateArray = 
-	Array(N - 1).fill('')
-		.map(() => 
-			Array(M - 1).fill({
-				top: {tick: true, color: ''},
+const createGameStateArray = () => {
+	let gameStateArray = new Array(N - 1);
+	for(let i = 0; i < N - 1; i++) {
+		gameStateArray[i] = new Array(M - 1);
+	}
+	
+	for (let i = 0; i < gameStateArray.length; i++) {
+		for(let j = 0; j < gameStateArray[0].length; j++) {
+			gameStateArray[i][j] = {
+				top: {tick: false, color: ''},
 				right: {tick: false, color: ''},
 				bottom: {tick: false, color: ''},
 				left: {tick: false, color: ''}
-			})
-		);
-console.log(gameStateArray);
+			}
+		}
+	}
+	return gameStateArray;
+};
+
+let gameStateArray = createGameStateArray();
 
 const hoverClasses = { R: "hover-red", B: "hover-blue" };
 const bgClasses = { R: "bg-red", B: "bg-blue" };
@@ -91,16 +100,16 @@ const fillGameStateArray = (id, color) => {
 	const idArr = id.split('-');
 	
 	const [typeId, rId, cId] = idArr;
-	console.log(rId);
-	console.log(cId);
-	console.log(typeId);
+	// console.log(rId);
+	// console.log(cId);
+	// console.log(typeId);
 	
 	if(typeId === 'h') {
 		if(+rId < gameStateArray.length) {
 			gameStateArray[rId][cId].top = {tick: true, color: color};
 		}
 		if(+rId - 1 >= 0) {
-			gameStateArray[rId][cId].bottom = {tick: true, color: color};
+			gameStateArray[rId - 1][cId].bottom = {tick: true, color: color};
 		}
 	}
 
@@ -113,8 +122,28 @@ const fillGameStateArray = (id, color) => {
 		}
 	}
 
-	console.log(gameStateArray);
-}
+	// console.log(gameStateArray);
+};
+
+const winnerFinder = () => {
+	let boxWinned;
+	let i = 0;
+	for(const row of gameStateArray) {
+		let j = 0;
+		for(const box of row) {
+			for(const dir in box) {
+				console.log(dir);
+				// if(box[dir].tick) {
+				// 	numTickLine++;
+				// }
+				// boxWinned =  numTickLine == 4 ? true : false;
+			}
+			j++;
+		}
+		i++;
+	}
+	// return boxWinned;
+};
 
 const handleLineClick = (e) => {
 
@@ -135,6 +164,9 @@ const handleLineClick = (e) => {
 	const lineColor = e.target.classList.contains('bg-red') ? 'red' : 'blue';
 	
 	fillGameStateArray(lineId, lineColor);
+	console.log(winnerFinder());
+	// check whether winner is find
+
 	changeTurn();
 };
 
@@ -143,6 +175,4 @@ const colorLine = (selectedLine) => {
 	selectedLine.classList.add(bgClasses[turn]);
 };
 
-
-console.log(gameStateArray);
 createGameGrid();
