@@ -52,6 +52,23 @@ section {
 	background-color: rgb(136, 136, 253);
 }
 
+@keyframes filler {
+	from {height: 0%;}
+	to {height: 100%;}
+}
+
 .box {
 	width: 100%;
+}
+
+.red-box {
+	background-color: red;
+	animation-name: filler;
+	animation-duration: 0.5s;
+}
+
+.blue-box {
+	background-color: blue;
+	animation-name: filler;
+	animation-duration: 0.5s;
 }

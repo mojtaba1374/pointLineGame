@@ -3,6 +3,7 @@ const M = 4;
 
 let turn = "R";
 let selectedLines = [];
+let winnerBoxState = [];
 
 const createGameStateArray = () => {
 	let gameStateArray = new Array(N - 1);
@@ -96,7 +97,6 @@ const changeTurn = () => {
 };
 
 const fillGameStateArray = (id, color) => {
-	console.log(color);
 	const idArr = id.split('-');
 	
 	const [typeId, rId, cId] = idArr;
@@ -125,25 +125,47 @@ const fillGameStateArray = (id, color) => {
 	// console.log(gameStateArray);
 };
 
-const winnerFinder = () => {
+const winnerFinder = (color) => {
+	const winnerArray = [];
 	let boxWinned;
+
 	let i = 0;
 	for(const row of gameStateArray) {
 		let j = 0;
 		for(const box of row) {
+			boxWinned = true;
 			for(const dir in box) {
-				console.log(dir);
-				// if(box[dir].tick) {
-				// 	numTickLine++;
-				// }
-				// boxWinned =  numTickLine == 4 ? true : false;
+				if(box[dir].tick) {
+					continue;
+				} else {
+					boxWinned = false;
+				}
+			}
+			const finderRepetetive = winnerBoxState.find(elm => elm.row === i && elm.col === j);
+			console.log(finderRepetetive);
+			if(boxWinned) {
+				// console.log('yes');
+				winnerArray.push({row: i, col: j, color: color});
+				// updateWinnerUi(color, i, j);
+				console.log(winnerArray);
 			}
 			j++;
 		}
 		i++;
 	}
-	// return boxWinned;
+	winnerBoxState = winnerArray;
+	// console.log(winnerBoxState);
 };
+
+const updateWinnerUi = (color, row, col) => {
+	let box = document.getElementById(`box-${row}-${col}`);
+	if(box.classList.contains('blue-box', 'red-box')) {
+		return;
+	};
+	// console.log(color);
+	let classAdded = color === 'blue' ? 'blue' : 'red';
+	box.classList.add(`${classAdded}-box`);
+}
 
 const handleLineClick = (e) => {
 
@@ -164,7 +186,7 @@ const handleLineClick = (e) => {
 	const lineColor = e.target.classList.contains('bg-red') ? 'red' : 'blue';
 	
 	fillGameStateArray(lineId, lineColor);
-	console.log(winnerFinder());
+	winnerFinder(lineColor);
 	// check whether winner is find
 
 	changeTurn();
