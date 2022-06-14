@@ -3,7 +3,10 @@ const M = 4;
 
 let turn = "R";
 let selectedLines = [];
-let winnerBoxState = [];
+const score = {
+	blue: 0,
+	red: 0
+};
 
 const createGameStateArray = () => {
 	let gameStateArray = new Array(N - 1);
@@ -18,6 +21,7 @@ const createGameStateArray = () => {
 				right: {tick: false, color: ''},
 				bottom: {tick: false, color: ''},
 				left: {tick: false, color: ''}
+
 			}
 		}
 	}
@@ -78,15 +82,18 @@ const createGameGrid = () => {
 			});
 		}
 	});
-
 	document.getElementById("game-status").innerHTML = playersTurnText(turn);
 };
 
-const changeTurn = () => {
-	const nextTurn = turn === "R" ? "B" : "R";
-
+const changeTurn = (color) => {
+	if(color) {
+		turn = color;
+		return;
+	}
+	let nextTurn = turn === "R" ? "B" : "R";
+	
 	const lines = document.querySelectorAll(".line-vertical, .line-horizontal");
-
+	
 	lines.forEach((l) => {
 		//if line was not already selected, change it's hover color according to the next turn
 		if (!isLineSelected(l)) {
@@ -100,9 +107,6 @@ const fillGameStateArray = (id, color) => {
 	const idArr = id.split('-');
 	
 	const [typeId, rId, cId] = idArr;
-	// console.log(rId);
-	// console.log(cId);
-	// console.log(typeId);
 	
 	if(typeId === 'h') {
 		if(+rId < gameStateArray.length) {
@@ -121,12 +125,9 @@ const fillGameStateArray = (id, color) => {
 			gameStateArray[rId][cId - 1].right = {tick: true, color: color};
 		}
 	}
-
-	// console.log(gameStateArray);
 };
 
 const winnerFinder = (color) => {
-	const winnerArray = [];
 	let boxWinned;
 
 	let i = 0;
@@ -141,53 +142,110 @@ const winnerFinder = (color) => {
 					boxWinned = false;
 				}
 			}
-			const finderRepetetive = winnerBoxState.find(elm => elm.row === i && elm.col === j);
-			console.log(finderRepetetive);
-			if(boxWinned) {
-				// console.log('yes');
-				winnerArray.push({row: i, col: j, color: color});
-				// updateWinnerUi(color, i, j);
-				console.log(winnerArray);
-			}
+			boxWinned &&updateWinnerUi(color, i, j);
 			j++;
 		}
 		i++;
 	}
-	winnerBoxState = winnerArray;
-	// console.log(winnerBoxState);
 };
 
 const updateWinnerUi = (color, row, col) => {
 	let box = document.getElementById(`box-${row}-${col}`);
-	if(box.classList.contains('blue-box', 'red-box')) {
+
+	
+	// turn = color === 'red' ? 'B' : 'R';
+	
+	if(box.classList.contains('blue-box') || box.classList.contains('red-box')) {
 		return;
 	};
-	// console.log(color);
+	
+	document.getElementById("game-status").innerHTML = 
+		playersTurnText(color === 'red' ? 'R' : 'B');
+	changeTurn(color === 'red' ? 'B' : 'R');
+
 	let classAdded = color === 'blue' ? 'blue' : 'red';
+
 	box.classList.add(`${classAdded}-box`);
+
+	updateUsersScore(color);
+}
+
+const updateUsersScore = (color) => {
+
+	const redElement = document.querySelector('.red-score span');
+	const blueElement = document.querySelector('.blue-score span');
+	let redScore = parseInt(redElement.innerText);
+	let blueScore = parseInt(blueElement.innerText);
+
+	if(color === 'red') {
+		redScore  += 1;
+		redElement.innerHTML = redScore;
+	} else if(color === 'blue') {
+		blueScore  += 1;
+		blueElement.innerHTML = blueScore;
+	}
+
+	if(redScore + blueScore === gameStateArray.length ** 2) {
+		Modal(redScore, blueScore);
+	}
+}
+
+const Modal = (redScore, blueScore) => {
+
+	let winner = redScore > blueScore ? 'red' : 'blue';
+
+	const body = document.body;
+	const modal = document.createElement('div');
+	const backdrop = document.createElement('div');
+	modal.classList.add('modal');
+	backdrop.classList.add('backdrop');
+	modal.innerHTML = `
+		<div class="winner-box">
+			<h2>${winner} player win</h2>
+		</div>
+		<div class="red">
+			<h3>red score <span>${redScore}</span></h3>
+		</div>
+		<div class="blue">
+			<h3>blue score <span>${blueScore}</span></h3>
+		</div>
+		<button class="retry-game">Retry Game</button>
+	`;
+	body.append(backdrop);
+	body.append(modal);
+
+	const retryButton = document.querySelector('.retry-game');
+	retryButton.addEventListener('click', retryGameHandler)
+};
+
+const retryGameHandler = () => {
+	location.reload();
 }
 
 const handleLineClick = (e) => {
 
 	const lineId = e.target.id;
-
+	
 	const selectedLine = document.getElementById(lineId);
-
+	
 	if (isLineSelected(selectedLine)) {
 		//if line was already selected, return
 		return;
 	}
-
+	
 	selectedLines = [...selectedLines, lineId];
 	// console.log(selectedLines);
 	
 	colorLine(selectedLine);
-
-	const lineColor = e.target.classList.contains('bg-red') ? 'red' : 'blue';
 	
+	const lineColor = e.target.classList.contains('bg-red') ? 'red' : 'blue';
+
+	document.getElementById("game-status").innerHTML = 
+		playersTurnText(lineColor === 'red' ? 'B' : 'R');
+	
+	// check whether winner is find
 	fillGameStateArray(lineId, lineColor);
 	winnerFinder(lineColor);
-	// check whether winner is find
 
 	changeTurn();
 };
